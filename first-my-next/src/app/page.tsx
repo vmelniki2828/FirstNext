@@ -1,22 +1,44 @@
 import { getAllArticles } from "./(server)/api";
 import { ROUTING } from "./routing";
 import { AppLink } from "./shared/components/app-link";
-import React from 'react';
+import React from "react";
+const ARTICLES_PER_PAGE = 10;
 
-export default async function Home({ searchParams }: { searchParams: { [key: string]: string } }) {
-
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Record<string, string>;
+}) {
   const allArticles = await getAllArticles();
-  console.log(await searchParams['page'])
+
+  console.log(searchParams["page"]);
+
+  const page = Number.parseInt(searchParams["page"] ?? 1);
+
+  const articles = allArticles.slice(
+    (page - 1) * ARTICLES_PER_PAGE,
+    page * ARTICLES_PER_PAGE
+  );
+
+  const nextPageUrl = {
+    search: new URLSearchParams({
+      page: (page + 1).toString(),
+    }).toString(),
+  };
   return (
     <>
-      <h1>Drag13 blog, page {}</h1>
+      <h1>Drag13 blog, page {page}</h1>
       <ul>
-        {allArticles.map((article) => (
-          <AppLink href={ROUTING.article(article.name)}>
-            <li key={article.name}>{article.header}</li>
-          </AppLink>
+        {articles.map((article) => (
+          <li key={article.name}>
+            <AppLink href={ROUTING.article(article.name)}>
+              {article.header}
+            </AppLink>
+          </li>
         ))}
       </ul>
+
+      <AppLink href={nextPageUrl}>Next</AppLink>
     </>
   );
 }
